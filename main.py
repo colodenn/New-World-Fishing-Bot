@@ -4,9 +4,14 @@ import time
 from windowcapture import WindowCapture
 from vision import Vision
 from hsvfilter import HsvFilter
-import pyautogui
+import pydirectinput
 from enum import Enum, auto
 import pydirectinput
+from tkinter import *
+from time import sleep
+import pyautogui
+import keyboard
+import os
 
 
 class States(Enum):
@@ -21,8 +26,8 @@ class States(Enum):
 
 class Bot:
     def __init__(self) -> None:
-        # self.__state = States.REPAIR
-        self.__state = States.REFOCUS
+        self.__state = States.REPAIR
+        # self.__state = States.REFOCUS
 
     def set_state(self, state):
         self.__state = state
@@ -35,17 +40,16 @@ class Bot:
 wincap = WindowCapture('Windowed Projector (Preview)')
 
 # initialize the Vision class
-vision_click = Vision('click.png')
-vision_level = Vision('fishhook.png')
-vision_green = Vision('green.png')
-vision_red = Vision('red.png')
-vision_finished = Vision('f3.png')
-
-vision_pole = Vision('pole.png')
-vision_bait = Vision('bait.png')
-vision_equip = Vision('equip.png')
-
-vision_pointer = Vision('pointer.png')
+vision_click = Vision('images/click.png')
+vision_level = Vision('images/fishhook.png')
+vision_green = Vision('images/green.png')
+vision_red = Vision('images/red.png')
+vision_finished = Vision('images/f3.png')
+vision_pole = Vision('images/pole.png')
+vision_bait = Vision('images/bait.png')
+vision_equip = Vision('images/equip.png')
+vision_pointer = Vision('images/pointer.png')
+vision_missed = Vision('images/missed.png')
 
 
 # vision_limestone.init_control_gui()
@@ -55,7 +59,8 @@ finished = True
 loop_time = time.time()
 bot = Bot()
 castcounter = 0
-while(True):
+running = True
+while(running):
 
     screenshot = wincap.get_screenshot()
     print('FPS {}; State:{}; Iteration: {}'.format(
@@ -63,15 +68,16 @@ while(True):
     loop_time = time.time()
     if bot.get_state() == States.IDLE:
         time.sleep(1)
-        pyautogui.keyDown("f3")
+        pydirectinput.keyDown("f3")
         time.sleep(1)
         bot.set_state(States.BAIT)
     elif bot.get_state() == States.CAST:
+        pydirectinput.keyDown('b')
         rectangles = vision_click.find(screenshot, 0.7)
         if len(rectangles) > 0:
-            pyautogui.mouseDown(button="left")
+            pydirectinput.mouseDown(button="left")
             time.sleep(1.9)
-            pyautogui.mouseUp(button="left")
+            pydirectinput.mouseUp(button="left")
             castcounter += 1
             if castcounter > 100:
                 bot.set_state(States.REPAIR)
@@ -82,55 +88,55 @@ while(True):
         logging = vision_level.find(screenshot, 0.7)
         # # rectangles.append(logging)
         if len(logging) > 0:
-            pyautogui.mouseDown(button="left")
-            pyautogui.mouseUp(button="left")
+            pydirectinput.mouseDown(button="left")
+            pydirectinput.mouseUp(button="left")
             bot.set_state(States.REEL)
     elif bot.get_state() == States.REEL:
         green = vision_green.find(screenshot, 0.6)
         red = vision_red.find(screenshot, 0.6)
         finished = vision_finished.find(screenshot, 0.7)
         if len(green) > 0:
-            pyautogui.mouseDown(button="left")
+            pydirectinput.mouseDown(button="left")
         elif len(red) > 0:
-            pyautogui.mouseUp(button="left")
+            pydirectinput.mouseUp(button="left")
         elif len(finished) > 0:
-            pyautogui.mouseUp(button="left")
+            pydirectinput.mouseUp(button="left")
             time.sleep(1)
             bot.set_state(States.REFOCUS)
     elif bot.get_state() == States.REPAIR:
         time.sleep(1)
 
-        pyautogui.keyDown("tab")
+        pydirectinput.keyDown("tab")
         time.sleep(1)
 
         pole = vision_pole.find(screenshot, 0.5)
         # print(pole)
         if len(pole) > 0:
-            pyautogui.moveTo(pole[0][0] - 5,
-                             pole[0][1] + 50)
+            pydirectinput.moveTo(pole[0][0] - 5,
+                                 pole[0][1] + 50)
             time.sleep(1)
 
-            pyautogui.keyDown("r")
-            pyautogui.mouseDown(button="left")
+            pydirectinput.keyDown("r")
+            pydirectinput.mouseDown(button="left")
             time.sleep(0.1)
-            pyautogui.mouseUp(button="left")
+            pydirectinput.mouseUp(button="left")
 
             time.sleep(0.4)
 
-            pyautogui.keyDown("e")
+            pydirectinput.keyDown("e")
 
             time.sleep(0.1)
-            pyautogui.keyUp("tab")
+            pydirectinput.keyUp("tab")
 
-            pyautogui.keyDown("tab")
+            pydirectinput.keyDown("tab")
             time.sleep(0.1)
 
-            pyautogui.keyUp("e")
+            pydirectinput.keyUp("e")
 
-            pyautogui.keyUp("r")
+            pydirectinput.keyUp("r")
             bot.set_state(States.IDLE)
     elif bot.get_state() == States.BAIT:
-        pyautogui.keyDown('r')
+        pydirectinput.keyDown('r')
         time.sleep(1)
 
         bait = vision_bait.find(screenshot, 0.7)
@@ -141,56 +147,53 @@ while(True):
         if len(bait) > 0 and len(equip) > 0:
             # print("found bait and equoü")
 
-            pyautogui.moveTo(bait[0][0] + 15,
-                             bait[0][1] + 40)
+            pydirectinput.moveTo(bait[0][0] + 15,
+                                 bait[0][1] + 40)
 
             time.sleep(1)
 
-            pyautogui.mouseDown(button="left")
+            pydirectinput.mouseDown(button="left")
             time.sleep(0.1)
-            pyautogui.mouseUp(button="left")
+            pydirectinput.mouseUp(button="left")
             time.sleep(0.1)
 
-            pyautogui.moveTo(equip[0][0] + 35,
-                             equip[0][1] + 50)
+            pydirectinput.moveTo(equip[0][0] + 35,
+                                 equip[0][1] + 50)
             time.sleep(1)
 
-            pyautogui.mouseDown(button="left")
+            pydirectinput.mouseDown(button="left")
             time.sleep(0.1)
-            pyautogui.mouseUp(button="left")
+            pydirectinput.mouseUp(button="left")
             time.sleep(2)
-            pyautogui.keyUp('r')
+            pydirectinput.keyUp('r')
 
             bot.set_state(States.CAST)
     elif bot.get_state() == States.REFOCUS:
-        time.sleep(1)
-        pydirectinput.move(100, 0)
+        pydirectinput.keyUp('b')
+
         bot.set_state(States.CAST)
-        # elif finished:
-        #     pass
 
-        # logging = vision_level.find(screenshot, 0.6)
-        # # rectangles.append(logging)
-        # if len(logging) > 0:
-        #     pyautogui.mouseDown(button="left")
-        #     pyautogui.mouseUp(button="left")
+    # elif finished:
+    #     pass
 
-        #     finished = True
+    # logging = vision_level.find(screenshot, 0.6)
+    # # rectangles.append(logging)
+    # if len(logging) > 0:
+    #     pydirectinput.mouseDown(button="left")
+    #     pydirectinput.mouseUp(button="left")
 
-        # output_image = vision_limestone.draw_rectangles(screenshot, rectangles)
+    #     finished = True
 
-        # cv.imshow("Matches", output_image)
-        # # cv.imshow("Processed", processed_image)
+    # # cv.imshow("Processed", processed_image)
 
-        # # debug the loop rate
+    # # debug the loop rate
 
-        # # press 'q' with the output window focused to exit.
-        # # waits 1 ms every loop to process key presses
-        # key = cv.waitKey(1)
-        # if key == ord('q'):
-        #     cv.destroyAllWindows()
-        #     break
-        # elif key == ord('f'):
-        #     cv.imwrite('positive/{}.jpg'.format(loop_time), screenshot)
-        # elif key == ord('d'):
-        #     cv.imwrite('negative/{}.jpg'.format(loop_time), screenshot)
+    # # press 'q' with the output window focused to exit.
+    # # waits 1 ms every loop to process key presses
+
+    #     cv.destroyAllWindows()
+    #     break
+    # elif key == ord('f'):
+    #     cv.imwrite('positive/{}.jpg'.format(loop_time), screenshot)
+    # elif key == ord('d'):
+    #     cv.imwrite('negative/{}.jpg'.format(loop_time), screenshot)
