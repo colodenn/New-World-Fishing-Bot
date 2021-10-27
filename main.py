@@ -79,7 +79,7 @@ while(running):
             time.sleep(1.9)
             pydirectinput.mouseUp(button="left")
             castcounter += 1
-            if castcounter > 100:
+            if castcounter > 50:
                 bot.set_state(States.REPAIR)
                 castcounter = 0
             else:
